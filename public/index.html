@@ -1,0 +1,1701 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Convertify</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Outfit:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --bg: #f5f2eb;
+        --bg2: #ede9e0;
+        --surface: #ffffff;
+        --border: #d8d3c8;
+        --border-dark: #b8b3a8;
+        --text: #1a1814;
+        --muted: #8a8070;
+        --accent: #2a2420;
+        --red: #c84b2f;
+        --gold: #e8a020;
+        --green: #2d6a4f;
+        --purple: #5b4fcf;
+        --shadow: 4px 4px 0px #1a1814;
+        --shadow-sm: 2px 2px 0px #1a1814;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "DM Mono", monospace;
+        min-height: 100vh;
+        padding: 2rem;
+      }
+      .wrap {
+        max-width: 680px;
+        margin: 0 auto;
+      }
+      header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 2.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .logo {
+        font-family: "Outfit", sans-serif;
+        font-size: 2.2rem;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1;
+      }
+      .logo span {
+        color: var(--red);
+      }
+      .tagline {
+        font-size: 0.62rem;
+        color: var(--muted);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 0.2rem;
+      }
+      .mode-tabs {
+        display: flex;
+        margin-bottom: 1.5rem;
+        border: 2px solid var(--text);
+      }
+      .mode-tab {
+        flex: 1;
+        padding: 0.7rem 1rem;
+        background: var(--bg2);
+        border: none;
+        font-family: "DM Mono", monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+        color: var(--muted);
+        transition: all 0.15s;
+        border-right: 2px solid var(--text);
+      }
+      .mode-tab:last-child {
+        border-right: none;
+      }
+      .mode-tab.active {
+        background: var(--text);
+        color: var(--bg);
+      }
+      .mode-tab:not(.active):hover {
+        background: var(--border);
+        color: var(--text);
+      }
+      .mode-tab.compress-tab.active {
+        background: var(--purple);
+        border-color: var(--purple);
+        color: #fff;
+      }
+      .drop-zone {
+        border: 2px dashed var(--border-dark);
+        background: var(--surface);
+        padding: 3rem 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .drop-zone:hover,
+      .drop-zone.drag-over {
+        border-color: var(--text);
+        border-style: solid;
+        box-shadow: var(--shadow);
+        background: var(--bg2);
+      }
+      .drop-icon {
+        font-size: 2.5rem;
+        display: block;
+        margin-bottom: 0.8rem;
+        transition: transform 0.2s;
+      }
+      .drop-zone:hover .drop-icon {
+        transform: translateY(-3px);
+      }
+      .drop-title {
+        font-family: "Outfit", sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+      }
+      .drop-sub {
+        font-size: 0.62rem;
+        color: var(--muted);
+        letter-spacing: 0.06em;
+        line-height: 1.8;
+      }
+      #file-input {
+        display: none;
+      }
+      .file-preview {
+        display: none;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1rem;
+        padding: 0.85rem 1rem;
+        background: var(--surface);
+        border: 2px solid var(--text);
+        box-shadow: var(--shadow-sm);
+      }
+      .file-preview.visible {
+        display: flex;
+      }
+      .file-badge {
+        font-size: 0.6rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        flex-shrink: 0;
+      }
+      .file-badge.video {
+        background: var(--red);
+        color: #fff;
+      }
+      .file-badge.image {
+        background: var(--green);
+        color: #fff;
+      }
+      .file-badge.document {
+        background: var(--gold);
+        color: #1a1814;
+      }
+      .file-badge.archive {
+        background: var(--muted);
+        color: #fff;
+      }
+      .file-badge.compress {
+        background: var(--purple);
+        color: #fff;
+      }
+      .file-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .file-name {
+        font-size: 0.8rem;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .file-meta {
+        font-size: 0.62rem;
+        color: var(--muted);
+        margin-top: 0.15rem;
+      }
+      .remove-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--muted);
+        font-size: 1rem;
+        padding: 0.2rem;
+        transition: color 0.15s;
+        flex-shrink: 0;
+      }
+      .remove-btn:hover {
+        color: var(--red);
+      }
+      .options-card {
+        display: none;
+        margin-top: 1.5rem;
+        background: var(--surface);
+        border: 2px solid var(--text);
+        box-shadow: var(--shadow);
+      }
+      .options-card.visible {
+        display: block;
+      }
+      .options-header {
+        padding: 0.7rem 1rem;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.62rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .options-header::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        background: var(--red);
+        display: inline-block;
+      }
+      .options-body {
+        padding: 1.25rem;
+      }
+      .field-row {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+      .field-row:last-child {
+        margin-bottom: 0;
+      }
+      .field-label {
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        min-width: 70px;
+        flex-shrink: 0;
+      }
+      select,
+      input[type="number"] {
+        background: var(--bg2);
+        border: 1.5px solid var(--border-dark);
+        color: var(--text);
+        font-family: "DM Mono", monospace;
+        font-size: 0.75rem;
+        padding: 0.45rem 0.7rem;
+        outline: none;
+        transition: border-color 0.15s;
+        width: 100%;
+      }
+      select:focus,
+      input[type="number"]:focus {
+        border-color: var(--text);
+      }
+      .format-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+      }
+      .fmt-btn {
+        padding: 0.3rem 0.75rem;
+        font-family: "DM Mono", monospace;
+        font-size: 0.7rem;
+        font-weight: 500;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        background: var(--bg2);
+        border: 1.5px solid var(--border-dark);
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.1s;
+      }
+      .fmt-btn:hover {
+        border-color: var(--text);
+        color: var(--text);
+      }
+      .fmt-btn.selected {
+        background: var(--text);
+        border-color: var(--text);
+        color: var(--bg);
+      }
+      .advanced-toggle {
+        font-size: 0.62rem;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 0;
+        margin-top: 0.75rem;
+        text-decoration: underline;
+      }
+      .advanced-toggle:hover {
+        color: var(--text);
+      }
+      .advanced-fields {
+        display: none;
+        margin-top: 1rem;
+      }
+      .advanced-fields.open {
+        display: block;
+      }
+      .dim-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        flex: 1;
+      }
+      /* Compress options panel */
+      .compress-opts {
+        display: none;
+        margin-top: 0.25rem;
+      }
+      .compress-opts.visible {
+        display: block;
+      }
+      .compress-hint {
+        font-size: 0.6rem;
+        color: var(--muted);
+        letter-spacing: 0.06em;
+        margin-top: 0.6rem;
+        line-height: 1.7;
+      }
+      /* Convert / Compress button */
+      .convert-btn {
+        width: 100%;
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background: var(--text);
+        color: var(--bg);
+        border: 2px solid var(--text);
+        font-family: "Outfit", sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition:
+          box-shadow 0.15s,
+          transform 0.1s;
+        box-shadow: var(--shadow);
+      }
+      .convert-btn:hover:not(:disabled) {
+        box-shadow: 6px 6px 0px var(--red);
+      }
+      .convert-btn.compress-active:hover:not(:disabled) {
+        box-shadow: 6px 6px 0px var(--purple);
+      }
+      .convert-btn:active:not(:disabled) {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0px #1a1814;
+      }
+      .convert-btn:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+      .progress-wrap {
+        display: none;
+        margin-top: 1.25rem;
+        background: var(--surface);
+        border: 2px solid var(--text);
+        padding: 1rem;
+      }
+      .progress-wrap.visible {
+        display: block;
+      }
+      .progress-top {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.6rem;
+      }
+      .progress-label {
+        font-size: 0.68rem;
+        color: var(--muted);
+        letter-spacing: 0.08em;
+      }
+      .progress-pct {
+        font-size: 0.68rem;
+        color: var(--red);
+        font-weight: 500;
+      }
+      .progress-track {
+        height: 4px;
+        background: var(--border);
+        overflow: hidden;
+        position: relative;
+      }
+      .progress-fill {
+        height: 100%;
+        background: var(--text);
+        width: 0%;
+        transition: width 0.25s ease;
+      }
+      .progress-fill.indeterminate {
+        width: 35%;
+        animation: sweep 1s ease-in-out infinite;
+      }
+      @keyframes sweep {
+        0% {
+          transform: translateX(-150%);
+        }
+        100% {
+          transform: translateX(400%);
+        }
+      }
+      .status {
+        display: none;
+        margin-top: 1rem;
+        padding: 0.75rem 1rem;
+        font-size: 0.7rem;
+        border-left: 3px solid;
+        letter-spacing: 0.03em;
+      }
+      .status.visible {
+        display: block;
+      }
+      .status.error {
+        border-color: var(--red);
+        background: rgba(200, 75, 47, 0.06);
+        color: var(--red);
+      }
+      .status.success {
+        border-color: var(--green);
+        background: rgba(45, 106, 79, 0.06);
+        color: var(--green);
+      }
+      /* Savings badge shown after compression */
+      .savings {
+        font-size: 0.62rem;
+        padding: 0.15rem 0.5rem;
+        background: rgba(45, 106, 79, 0.1);
+        color: var(--green);
+        border: 1px solid currentColor;
+        margin-left: 0.5rem;
+        letter-spacing: 0.06em;
+        vertical-align: middle;
+      }
+      .savings.no-reduction {
+        background: rgba(138, 128, 112, 0.1);
+        color: var(--muted);
+        border-color: currentColor;
+      }
+      .format-reference {
+        margin-top: 3rem;
+        border: 1px solid var(--border);
+      }
+      .format-reference summary {
+        padding: 0.75rem 1rem;
+        font-size: 0.62rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        cursor: pointer;
+        color: var(--muted);
+        user-select: none;
+      }
+      .format-reference summary:hover {
+        color: var(--text);
+      }
+      .fmt-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.63rem;
+      }
+      .fmt-table th {
+        padding: 0.5rem 1rem;
+        text-align: left;
+        background: var(--bg2);
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .fmt-table td {
+        padding: 0.5rem 1rem;
+        border-top: 1px solid var(--border);
+        line-height: 1.6;
+      }
+      /* Support Gallery */
+      .support-section {
+        margin-top: 4rem;
+        padding-top: 2rem;
+        border-top: 2px solid var(--text);
+        padding-bottom: 2rem;
+      }
+      .support-title {
+        font-family: "Outfit", sans-serif;
+        font-size: 1.25rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .support-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+      }
+      @media (max-width: 500px) {
+        .support-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .support-card {
+        background: var(--surface);
+        border: 2px solid var(--text);
+        padding: 1.25rem;
+        box-shadow: var(--shadow-sm);
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+      }
+      .support-card:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: var(--shadow);
+      }
+      .support-card-head {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin-bottom: 0.75rem;
+      }
+      .support-card-icon {
+        font-size: 1.2rem;
+      }
+      .support-card-label {
+        font-family: "Outfit", sans-serif;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .support-list-box {
+        margin-bottom: 0.75rem;
+      }
+      .support-list-box:last-child {
+        margin-bottom: 0;
+      }
+      .support-list-label {
+        font-size: 0.58rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 0.35rem;
+        display: block;
+      }
+      .support-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+      }
+      .support-tag {
+        font-size: 0.58rem;
+        padding: 0.15rem 0.4rem;
+        background: var(--bg2);
+        border: 1px solid var(--border-dark);
+        color: var(--text);
+        white-space: nowrap;
+      }
+      .support-tag.out {
+        border-color: var(--red);
+        color: var(--red);
+        background: rgba(200, 75, 47, 0.04);
+      }
+      .support-tag.purple {
+        border-color: var(--purple);
+        color: var(--purple);
+        background: rgba(91, 79, 207, 0.04);
+      }
+      footer {
+        margin-top: 2.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.58rem;
+        color: var(--muted);
+        display: flex;
+        justify-content: space-between;
+        letter-spacing: 0.08em;
+      }
+      @media (max-width: 500px) {
+        body {
+          padding: 1rem;
+        }
+        header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.5rem;
+        }
+        .field-row {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .field-label {
+          min-width: unset;
+        }
+        .mode-tab {
+          font-size: 0.6rem;
+          padding: 0.6rem 0.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div>
+          <div class="tagline">All-in-one file converter</div>
+          <div class="logo">Con<span>vert</span>ify</div>
+        </div>
+        <div class="tagline" style="text-align: right">
+          Video · Image · Audio · Docs · Archive · Compress<br />ffmpeg + sharp
+          + LibreOffice + Ghostscript
+        </div>
+      </header>
+
+      <div class="mode-tabs">
+        <button class="mode-tab active" data-mode="auto">⚡ Auto</button>
+        <button class="mode-tab" data-mode="video">🎬 Video</button>
+        <button class="mode-tab" data-mode="audio">🎵 Audio</button>
+        <button class="mode-tab" data-mode="image">🖼 Image</button>
+        <button class="mode-tab" data-mode="document">📄 Docs</button>
+        <button class="mode-tab" data-mode="archive">📦 Archive</button>
+        <button class="mode-tab compress-tab" data-mode="compress">
+          🗜 Compress
+        </button>
+      </div>
+
+      <div class="drop-zone" id="drop-zone">
+        <span class="drop-icon" id="drop-icon">📁</span>
+        <div class="drop-title" id="drop-title">Drop your file here</div>
+        <div class="drop-sub" id="drop-sub">
+          VIDEO: MP4 · MOV · AVI · MKV · WEBM · MXF · M2TS · FLV<br />IMAGE: JPG
+          · PNG · WEBP · AVIF · GIF · BMP · TIFF · HEIC · PSD · EPS<br />DOC:
+          PDF · DOCX · XLSX · PPTX · ODT · RTF · TXT · HTML · MD<br />ARCHIVE:
+          ZIP · TAR · 7Z · RAR · TAR.GZ
+        </div>
+        <input type="file" id="file-input" />
+      </div>
+
+      <div class="file-preview" id="file-preview">
+        <span class="file-badge" id="type-badge">video</span>
+        <div class="file-info">
+          <div class="file-name" id="file-name"></div>
+          <div class="file-meta" id="file-meta"></div>
+        </div>
+        <button class="remove-btn" id="remove-btn">✕</button>
+      </div>
+
+      <div class="options-card" id="options-card">
+        <div class="options-header" id="options-header">Output options</div>
+        <div class="options-body">
+          <!-- Format selector (conversion mode) -->
+          <div class="field-row" id="format-row">
+            <span class="field-label">Format</span>
+            <div class="format-grid" id="format-grid"></div>
+          </div>
+
+          <!-- Compress options (compress mode only) -->
+          <div class="compress-opts" id="compress-opts">
+            <div class="field-row" id="compress-qual-row">
+              <span class="field-label">Quality</span>
+              <select id="compress-quality">
+                <option value="60">60 — Aggressive</option>
+                <option value="70">70 — Compact</option>
+                <option value="75" selected>75 — Default</option>
+                <option value="80">80 — Balanced</option>
+                <option value="90">90 — High</option>
+              </select>
+            </div>
+            <div
+              class="field-row"
+              id="compress-preset-row"
+              style="display: none"
+            >
+              <span class="field-label">Preset</span>
+              <select id="compress-preset">
+                <option value="screen">Screen — smallest file</option>
+                <option value="ebook" selected>Ebook — recommended</option>
+                <option value="printer">Printer — higher quality</option>
+              </select>
+            </div>
+            <div class="compress-hint" id="compress-hint"></div>
+          </div>
+
+          <button class="advanced-toggle" id="adv-toggle">
+            + Advanced options
+          </button>
+          <div class="advanced-fields" id="adv-fields">
+            <div id="audio-opts" style="display: none">
+              <div class="field-row" style="margin-top: 0.75rem">
+                <span class="field-label">Audio kbps</span>
+                <select id="audio-bitrate">
+                  <option value="128">128 kbps</option>
+                  <option value="192" selected>192 kbps</option>
+                  <option value="256">256 kbps</option>
+                  <option value="320">320 kbps</option>
+                </select>
+              </div>
+            </div>
+            <div id="video-opts" style="display: none">
+              <div class="field-row" style="margin-top: 0.75rem">
+                <span class="field-label">Quality</span>
+                <select id="video-crf">
+                  <option value="18">High (CRF 18)</option>
+                  <option value="23" selected>Medium (CRF 23)</option>
+                  <option value="28">Low (CRF 28)</option>
+                </select>
+              </div>
+              <div id="video-gif-opts" style="display: none">
+                <div class="field-row">
+                  <span class="field-label">GIF FPS</span>
+                  <select id="gif-fps">
+                    <option value="6">6 fps</option>
+                    <option value="10" selected>10 fps</option>
+                    <option value="15">15 fps</option>
+                    <option value="24">24 fps</option>
+                  </select>
+                </div>
+                <div class="field-row">
+                  <span class="field-label">GIF width</span>
+                  <select id="gif-scale">
+                    <option value="320">320px</option>
+                    <option value="480" selected>480px</option>
+                    <option value="640">640px</option>
+                    <option value="800">800px</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div id="image-opts" style="display: none">
+              <div class="field-row" style="margin-top: 0.75rem">
+                <span class="field-label">Quality</span>
+                <select id="image-quality">
+                  <option value="70">70 — Compressed</option>
+                  <option value="85">85 — Balanced</option>
+                  <option value="90" selected>90 — High</option>
+                  <option value="100">100 — Lossless</option>
+                </select>
+              </div>
+              <div class="field-row">
+                <span class="field-label">Resize</span>
+                <div class="dim-row">
+                  <input
+                    type="number"
+                    id="img-width"
+                    placeholder="Width px"
+                    min="1"
+                    max="8000"
+                  /><input
+                    type="number"
+                    id="img-height"
+                    placeholder="Height px"
+                    min="1"
+                    max="8000"
+                  />
+                </div>
+              </div>
+            </div>
+            <div id="doc-opts" style="display: none">
+              <div class="field-row" style="margin-top: 0.75rem">
+                <span class="field-label">Engine</span>
+                <span
+                  id="doc-engine"
+                  style="
+                    font-size: 0.72rem;
+                    color: var(--muted);
+                    letter-spacing: 0.06em;
+                  "
+                  >—</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="convert-btn" id="convert-btn" disabled>
+        Convert File
+      </button>
+
+      <div class="progress-wrap" id="progress-wrap">
+        <div class="progress-top">
+          <span class="progress-label" id="progress-label">Uploading...</span>
+          <span class="progress-pct" id="progress-pct">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+      </div>
+
+      <div class="status" id="status"></div>
+
+      <section class="support-section">
+        <div class="support-title">📦 Supported Formats</div>
+        <div class="support-grid">
+          <!-- Video -->
+          <div class="support-card">
+            <div class="support-card-head">
+              <span class="support-card-icon">🎬</span
+              ><span class="support-card-label">Video</span>
+            </div>
+            <div class="support-list-box">
+              <span class="support-list-label">Input extensions</span>
+              <div class="support-tags">
+                <span class="support-tag">MOV</span
+                ><span class="support-tag">MP4</span
+                ><span class="support-tag">AVI</span
+                ><span class="support-tag">MKV</span
+                ><span class="support-tag">WEBM</span
+                ><span class="support-tag">M2TS</span
+                ><span class="support-tag">MXF</span
+                ><span class="support-tag">VOB</span
+                ><span class="support-tag">FLV</span
+                ><span class="support-tag">WMV</span
+                ><span class="support-tag">MPEG</span
+                ><span class="support-tag">3GP</span>
+              </div>
+            </div>
+            <div class="support-list-box">
+              <span class="support-list-label">Primary Outputs</span>
+              <div class="support-tags">
+                <span class="support-tag out">MP4</span
+                ><span class="support-tag out">WEBM</span
+                ><span class="support-tag out">MKV</span
+                ><span class="support-tag out">AVI</span
+                ><span class="support-tag out">MOV</span
+                ><span class="support-tag out">GIF</span>
+              </div>
+            </div>
+          </div>
+          <!-- Audio -->
+          <div class="support-card">
+            <div class="support-card-head">
+              <span class="support-card-icon">🎵</span
+              ><span class="support-card-label">Audio</span>
+            </div>
+            <div class="support-list-box">
+              <span class="support-list-label">Input extensions</span>
+              <div class="support-tags">
+                <span class="support-tag">MP3</span
+                ><span class="support-tag">WAV</span
+                ><span class="support-tag">M4A</span
+                ><span class="support-tag">AAC</span
+                ><span class="support-tag">FLAC</span
+                ><span class="support-tag">OGG</span
+                ><span class="support-tag">WMA</span
+                ><span class="support-tag">AMR</span
+                ><span class="support-tag">CAF</span
+                ><span class="support-tag">AC3</span
+                ><span class="support-tag">M4B</span
+                ><span class="support-tag">AIF</span>
+              </div>
+            </div>
+            <div class="support-list-box">
+              <span class="support-list-label">Primary Outputs</span>
+              <div class="support-tags">
+                <span class="support-tag out">MP3</span
+                ><span class="support-tag out">WAV</span
+                ><span class="support-tag out">M4A</span
+                ><span class="support-tag out">AAC</span
+                ><span class="support-tag out">FLAC</span
+                ><span class="support-tag out">OGG</span>
+              </div>
+            </div>
+          </div>
+          <!-- Image -->
+          <div class="support-card">
+            <div class="support-card-head">
+              <span class="support-card-icon">🖼️</span
+              ><span class="support-card-label">Image</span>
+            </div>
+            <div class="support-list-box">
+              <span class="support-list-label">Input extensions</span>
+              <div class="support-tags">
+                <span class="support-tag">JPG</span
+                ><span class="support-tag">PNG</span
+                ><span class="support-tag">WEBP</span
+                ><span class="support-tag">GIF</span
+                ><span class="support-tag">BMP</span
+                ><span class="support-tag">TIFF</span
+                ><span class="support-tag">AVIF</span
+                ><span class="support-tag">HEIC</span
+                ><span class="support-tag">ICO</span
+                ><span class="support-tag">TGA</span>
+              </div>
+            </div>
+            <div class="support-list-box">
+              <span class="support-list-label">Primary Outputs</span>
+              <div class="support-tags">
+                <span class="support-tag out">JPG</span
+                ><span class="support-tag out">PNG</span
+                ><span class="support-tag out">WEBP</span
+                ><span class="support-tag out">AVIF</span
+                ><span class="support-tag out">GIF</span
+                ><span class="support-tag out">BMP</span>
+              </div>
+            </div>
+          </div>
+          <!-- Document -->
+          <div class="support-card">
+            <div class="support-card-head">
+              <span class="support-card-icon">📄</span
+              ><span class="support-card-label">Document</span>
+            </div>
+            <div class="support-list-box">
+              <span class="support-list-label">Input extensions</span>
+              <div class="support-tags">
+                <span class="support-tag">DOCX</span
+                ><span class="support-tag">PDF</span
+                ><span class="support-tag">XLSX</span
+                ><span class="support-tag">PPTX</span
+                ><span class="support-tag">ODT</span
+                ><span class="support-tag">RTF</span
+                ><span class="support-tag">TXT</span
+                ><span class="support-tag">HTML</span
+                ><span class="support-tag">MD</span
+                ><span class="support-tag">PSD</span
+                ><span class="support-tag">EPS</span
+                ><span class="support-tag">PUB</span>
+              </div>
+            </div>
+            <div class="support-list-box">
+              <span class="support-list-label">Primary Outputs</span>
+              <div class="support-tags">
+                <span class="support-tag out">PDF</span
+                ><span class="support-tag out">DOCX</span
+                ><span class="support-tag out">HTML</span
+                ><span class="support-tag out">TXT</span
+                ><span class="support-tag out">ODT</span
+                ><span class="support-tag out">EPUB</span>
+              </div>
+            </div>
+          </div>
+          <!-- Archive -->
+          <div class="support-card">
+            <div class="support-card-head">
+              <span class="support-card-icon">📦</span
+              ><span class="support-card-label">Archive</span>
+            </div>
+            <div class="support-list-box">
+              <span class="support-list-label">Input extensions</span>
+              <div class="support-tags">
+                <span class="support-tag">ZIP</span
+                ><span class="support-tag">TAR</span
+                ><span class="support-tag">7Z</span
+                ><span class="support-tag">RAR</span
+                ><span class="support-tag">TGZ</span
+                ><span class="support-tag">TAR.GZ</span>
+              </div>
+            </div>
+            <div class="support-list-box">
+              <span class="support-list-label">Primary Outputs</span>
+              <div class="support-tags">
+                <span class="support-tag out">ZIP</span
+                ><span class="support-tag out">TAR</span
+                ><span class="support-tag out">7Z</span
+                ><span class="support-tag out">TAR.GZ</span>
+              </div>
+            </div>
+          </div>
+          <!-- Compress -->
+          <div class="support-card">
+            <div class="support-card-head">
+              <span class="support-card-icon">🗜️</span
+              ><span class="support-card-label">Compress</span>
+            </div>
+            <div class="support-list-box">
+              <span class="support-list-label">Available for</span>
+              <div class="support-tags">
+                <span class="support-tag purple">PDF</span
+                ><span class="support-tag purple">PNG</span
+                ><span class="support-tag purple">JPG</span>
+              </div>
+            </div>
+            <div class="support-list-box">
+              <span class="support-list-label">Features</span>
+              <div class="support-tags">
+                <span class="support-tag">Metadata stripping</span
+                ><span class="support-tag">Lossy compression</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <span>CONVERTIFY · RUNS LOCALLY</span>
+        <span>CONVERT: MAX 1 GB &nbsp;·&nbsp; COMPRESS: MAX 50 MB</span>
+      </footer>
+    </div>
+    <script>
+      const VIDEO_OUTPUTS = ["mp4", "webm", "mkv", "avi", "mov", "gif", "m4v"];
+      const AUDIO_OUTPUTS = ["mp3", "wav", "m4a", "flac", "ogg", "aac"];
+      const IMAGE_OUTPUTS = [
+        "jpg",
+        "png",
+        "webp",
+        "avif",
+        "gif",
+        "bmp",
+        "tiff",
+        "heic",
+        "ico",
+        "tga",
+        "ppm",
+      ];
+      const ARCHIVE_OUTPUTS = ["zip", "tar", "tar.gz", "7z"];
+      const COMPRESS_EXTS = [".pdf", ".png", ".jpg", ".jpeg"];
+
+      const VIDEO_EXTS = [
+        ".3g2",
+        ".3gp",
+        ".3gpp",
+        ".avi",
+        ".cavs",
+        ".dv",
+        ".dvr",
+        ".flv",
+        ".m2ts",
+        ".m4v",
+        ".mkv",
+        ".mod",
+        ".mov",
+        ".mp4",
+        ".mpeg",
+        ".mpg",
+        ".mts",
+        ".mxf",
+        ".ts",
+        ".vob",
+        ".webm",
+        ".wmv",
+      ];
+      const AUDIO_EXTS = [
+        ".aac",
+        ".ac3",
+        ".aif",
+        ".aifc",
+        ".aiff",
+        ".amr",
+        ".au",
+        ".caf",
+        ".flac",
+        ".m4a",
+        ".m4b",
+        ".mp3",
+        ".oga",
+        ".ogg",
+        ".voc",
+        ".wav",
+        ".weba",
+        ".wma",
+      ];
+      const IMAGE_EXTS = [
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp",
+        ".gif",
+        ".bmp",
+        ".tiff",
+        ".tif",
+        ".avif",
+        ".heic",
+        ".heif",
+        ".ico",
+        ".jfif",
+        ".ppm",
+        ".tga",
+      ];
+      const DOC_EXTS = [
+        ".docx",
+        ".doc",
+        ".odt",
+        ".rtf",
+        ".txt",
+        ".html",
+        ".htm",
+        ".xlsx",
+        ".xls",
+        ".ods",
+        ".csv",
+        ".pptx",
+        ".ppt",
+        ".odp",
+        ".pdf",
+        ".epub",
+        ".md",
+        ".odd",
+        ".odg",
+        ".pub",
+        ".xps",
+        ".psd",
+        ".psb",
+        ".eps",
+        ".ps",
+      ];
+      const ARCHIVE_EXTS = [
+        ".zip",
+        ".tar",
+        ".tar.gz",
+        ".tgz",
+        ".tar.bz2",
+        ".7z",
+        ".rar",
+      ];
+      const ALL_EXTS = [
+        ...VIDEO_EXTS,
+        ...AUDIO_EXTS,
+        ...IMAGE_EXTS,
+        ...DOC_EXTS,
+        ...ARCHIVE_EXTS,
+      ];
+
+      // Doc format map: fetched from server on load
+      let DOC_FORMAT_MAP = {};
+
+      // Engine hint: which output formats use pandoc vs LibreOffice
+      const PANDOC_ONLY_INPUTS = new Set(["md", "htm", "epub"]);
+      const PANDOC_FORMATS = {
+        md: ["docx", "pdf", "html", "odt", "rtf", "txt", "epub"],
+        html: ["docx", "pdf", "odt", "rtf", "txt", "md", "epub"],
+        htm: ["docx", "pdf", "odt", "rtf", "txt", "md", "epub"],
+        txt: ["docx", "pdf", "html", "odt", "rtf", "md"],
+        epub: ["docx", "pdf", "html", "odt", "txt", "md"],
+      };
+      const LO_FORMATS = {
+        docx: ["pdf", "odt", "rtf", "txt", "html", "docx"],
+        doc: ["pdf", "odt", "rtf", "txt", "html", "docx"],
+        odt: ["pdf", "docx", "rtf", "txt", "html"],
+        rtf: ["pdf", "docx", "odt", "txt", "html"],
+        xlsx: ["pdf", "ods", "csv", "xlsx"],
+        xls: ["pdf", "ods", "csv", "xlsx"],
+        ods: ["pdf", "xlsx", "csv"],
+        csv: ["pdf", "xlsx", "ods"],
+        pptx: ["pdf", "odp", "pptx"],
+        ppt: ["pdf", "odp", "pptx"],
+        odp: ["pdf", "pptx"],
+        odd: ["pdf"],
+        odg: ["pdf"],
+        pub: ["pdf"],
+        xps: ["pdf"],
+        psd: ["pdf", "png", "jpg"],
+        psb: ["pdf", "png", "jpg"],
+        eps: ["pdf", "png", "jpg"],
+        ps: ["pdf", "png", "jpg"],
+      };
+
+      const $ = (id) => document.getElementById(id);
+
+      const dropZone = $("drop-zone"),
+        fileInput = $("file-input"),
+        filePreview = $("file-preview");
+      const typeBadge = $("type-badge"),
+        fileNameEl = $("file-name"),
+        fileMetaEl = $("file-meta");
+      const removeBtn = $("remove-btn"),
+        optionsCard = $("options-card"),
+        formatGrid = $("format-grid");
+      const convertBtn = $("convert-btn"),
+        progressWrap = $("progress-wrap"),
+        progressFill = $("progress-fill");
+      const progressLabel = $("progress-label"),
+        progressPct = $("progress-pct"),
+        statusEl = $("status");
+      const advToggle = $("adv-toggle"),
+        advFields = $("adv-fields"),
+        videoOpts = $("video-opts");
+      const imageOpts = $("image-opts"),
+        dropIcon = $("drop-icon"),
+        dropTitle = $("drop-title");
+      const dropSub = $("drop-sub"),
+        videoGifOpts = $("video-gif-opts");
+      const docOpts = $("doc-opts"),
+        docEngine = $("doc-engine");
+      const audioOpts = $("audio-opts");
+      const optionsHeader = $("options-header");
+      const formatRow = $("format-row");
+      const compressOpts = $("compress-opts");
+      const compressQualRow = $("compress-qual-row");
+      const compressPresetRow = $("compress-preset-row");
+      const compressHint = $("compress-hint");
+
+      let selectedFile = null,
+        selectedFmt = null,
+        detectedType = null,
+        compressMode = false;
+
+      // Fetch doc format map from server — must resolve before a document file is usable
+      let formatsReady = false;
+      let formatsFailed = false;
+      const formatsPromise = fetch("/formats")
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.document) DOC_FORMAT_MAP = data.document.outputs || {};
+          formatsReady = true;
+        })
+        .catch(() => {
+          formatsReady = true;
+          formatsFailed = true;
+        });
+
+      // Set correct accept attribute on page load to match the default tab
+      fileInput.accept = ALL_EXTS.join(",");
+
+      // ── Mode tabs ──────────────────────────────────────────────────────────────
+      document.querySelectorAll(".mode-tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          document
+            .querySelectorAll(".mode-tab")
+            .forEach((t) => t.classList.remove("active"));
+          tab.classList.add("active");
+          const mode = tab.dataset.mode;
+          compressMode = mode === "compress";
+
+          if (mode === "video") {
+            fileInput.accept = VIDEO_EXTS.join(",");
+            dropIcon.textContent = "🎬";
+            dropTitle.textContent = "Drop your video file";
+            dropSub.textContent =
+              "MP4 · MOV · AVI · MKV · WEBM · MXF · M2TS · FLV · WMV · 3GP · VOB";
+          } else if (mode === "audio") {
+            fileInput.accept = AUDIO_EXTS.join(",");
+            dropIcon.textContent = "🎵";
+            dropTitle.textContent = "Drop your audio file";
+            dropSub.textContent =
+              "MP3 · WAV · M4A · AAC · FLAC · OGG · WMA · AMR · CAF · AC3 · AIF";
+          } else if (mode === "image") {
+            fileInput.accept = IMAGE_EXTS.join(",");
+            dropIcon.textContent = "🖼️";
+            dropTitle.textContent = "Drop your image file";
+            dropSub.textContent =
+              "JPG · PNG · WEBP · AVIF · GIF · BMP · TIFF · HEIC · ICO · TGA";
+          } else if (mode === "document") {
+            fileInput.accept = DOC_EXTS.join(",");
+            dropIcon.textContent = "📄";
+            dropTitle.textContent = "Drop your document";
+            dropSub.textContent =
+              "PDF · DOCX · XLSX · PPTX · ODT · RTF · TXT · HTML · MD · PSD · EPS · PUB";
+          } else if (mode === "archive") {
+            fileInput.accept = ARCHIVE_EXTS.join(",");
+            dropIcon.textContent = "📦";
+            dropTitle.textContent = "Drop your archive file";
+            dropSub.textContent =
+              "ZIP · TAR · TAR.GZ · TGZ · TAR.BZ2 · 7Z · RAR";
+          } else if (mode === "compress") {
+            fileInput.accept = COMPRESS_EXTS.join(",");
+            dropIcon.textContent = "🗜️";
+            dropTitle.textContent = "Drop a file to compress";
+            dropSub.textContent = "PDF · PNG · JPG  —  Max 50 MB";
+          } else {
+            // auto
+            fileInput.accept = ALL_EXTS.join(",");
+            dropIcon.textContent = "📁";
+            dropTitle.textContent = "Drop your file here";
+            dropSub.innerHTML =
+              "VIDEO: MP4 · MOV · AVI · MKV · WEBM · MXF · M2TS · FLV<br>IMAGE: JPG · PNG · WEBP · AVIF · GIF · BMP · TIFF · HEIC · PSD · EPS<br>DOC: PDF · DOCX · XLSX · PPTX · ODT · RTF · TXT · HTML · MD<br>ARCHIVE: ZIP · TAR · 7Z · RAR · TAR.GZ";
+          }
+
+          // Refresh if a file is already loaded
+          if (mode === "auto") {
+            if (selectedFile && detectedType) {
+              updateFormats(detectedType);
+              optionsCard.classList.add("visible");
+            } else {
+              updateFormats(null);
+              optionsCard.classList.remove("visible");
+            }
+          } else {
+            updateFormats(mode === "compress" ? null : mode);
+            if (selectedFile) optionsCard.classList.add("visible");
+            else optionsCard.classList.remove("visible");
+          }
+        });
+      });
+
+      // ── Utilities ──────────────────────────────────────────────────────────────
+      function formatSize(b) {
+        if (b < 1048576) return (b / 1024).toFixed(1) + " KB";
+        if (b < 1073741824) return (b / 1048576).toFixed(1) + " MB";
+        return (b / 1073741824).toFixed(2) + " GB";
+      }
+
+      function detectType(f) {
+        const name = f.name.toLowerCase();
+        let e = "." + name.split(".").pop();
+        if (name.endsWith(".tar.gz")) e = ".tar.gz";
+        else if (name.endsWith(".tar.bz2")) e = ".tar.bz2";
+
+        if (VIDEO_EXTS.includes(e)) return "video";
+        if (AUDIO_EXTS.includes(e)) return "audio";
+        if (IMAGE_EXTS.includes(e)) return "image";
+        if (DOC_EXTS.includes(e)) return "document";
+        if (ARCHIVE_EXTS.includes(e)) return "archive";
+        return null;
+      }
+
+      function updateFormats(type) {
+        // Always reset compress UI state first
+        compressOpts.classList.remove("visible");
+        formatRow.style.display = "";
+        advToggle.style.display = "";
+
+        if (compressMode) {
+          formatGrid.innerHTML = "";
+          formatRow.style.display = "none";
+          advToggle.style.display = "none";
+          advFields.classList.remove("open");
+          compressOpts.classList.add("visible");
+
+          const ext = selectedFile
+            ? selectedFile.name.toLowerCase().split(".").pop()
+            : "";
+          const isPdf = ext === "pdf";
+          compressQualRow.style.display = isPdf ? "none" : "";
+          compressPresetRow.style.display = isPdf ? "" : "none";
+
+          // Hint text per format
+          if (isPdf) {
+            compressHint.textContent =
+              "Ghostscript rewrites the PDF at the chosen quality preset and strips all metadata.";
+          } else if (ext === "png") {
+            compressHint.textContent =
+              "Two-pass: pngquant (lossy palette reduction) then optipng (lossless deflate). Transparency preserved.";
+          } else {
+            compressHint.textContent =
+              "jpegoptim reduces quality to the chosen level, enables progressive encoding, and strips all EXIF/IPTC metadata.";
+          }
+
+          // Normalize jpeg → jpg for routing
+          selectedFmt = ext === "jpeg" ? "jpg" : ext;
+          convertBtn.disabled = false;
+          convertBtn.textContent = "Compress File";
+          convertBtn.classList.add("compress-active");
+          optionsHeader.textContent = "Compression options";
+          return;
+        }
+
+        // Restore conversion header
+        optionsHeader.textContent = "Output options";
+        convertBtn.classList.remove("compress-active");
+
+        let fmts;
+        if (type === "video") fmts = [...VIDEO_OUTPUTS, ...AUDIO_OUTPUTS];
+        else if (type === "audio") fmts = AUDIO_OUTPUTS;
+        else if (type === "image") fmts = IMAGE_OUTPUTS;
+        else if (type === "archive") fmts = ARCHIVE_OUTPUTS;
+        else if (type === "document") {
+          const name = selectedFile ? selectedFile.name.toLowerCase() : "";
+          const ext = name ? name.split(".").pop() : null;
+          fmts = ext && DOC_FORMAT_MAP[ext] ? DOC_FORMAT_MAP[ext] : [];
+        } else fmts = [];
+
+        // Reset grid and clear stale selection
+        formatGrid.innerHTML = "";
+        selectedFmt = null;
+        videoGifOpts.style.display = "none";
+        convertBtn.disabled = true;
+        convertBtn.textContent = "Select a format above";
+
+        fmts.forEach((fmt) => {
+          const btn = document.createElement("button");
+          btn.className = "fmt-btn";
+          btn.textContent = fmt;
+          btn.dataset.fmt = fmt;
+          btn.addEventListener("click", () => {
+            document
+              .querySelectorAll(".fmt-btn")
+              .forEach((b) => b.classList.remove("selected"));
+            btn.classList.add("selected");
+            selectedFmt = fmt;
+
+            // Show GIF options only for video → gif
+            videoGifOpts.style.display =
+              type === "video" && fmt === "gif" ? "block" : "none";
+
+            // Engine hint for documents
+            if (type === "document" && docEngine) {
+              const ext = selectedFile
+                ? selectedFile.name.split(".").pop().toLowerCase()
+                : "";
+              const loOuts = LO_FORMATS[ext] || [];
+              const pOuts = PANDOC_FORMATS[ext] || [];
+              const usesPandoc = pOuts.includes(fmt) && !loOuts.includes(fmt);
+              docEngine.textContent = usesPandoc ? "Pandoc" : "LibreOffice";
+            }
+
+            convertBtn.disabled = false;
+            convertBtn.textContent = `Convert to .${fmt.toUpperCase()}`;
+          });
+          formatGrid.appendChild(btn);
+        });
+
+        audioOpts.style.display =
+          type === "video" || type === "audio" ? "block" : "none";
+        videoOpts.style.display = type === "video" ? "block" : "none";
+        imageOpts.style.display = type === "image" ? "block" : "none";
+        docOpts.style.display = type === "document" ? "block" : "none";
+      }
+
+      async function setFile(file) {
+        selectedFile = file;
+
+        // ── Compress mode ──────────────────────────────────────────────────────
+        if (compressMode) {
+          const ext = "." + file.name.toLowerCase().split(".").pop();
+          if (!COMPRESS_EXTS.includes(ext)) {
+            showStatus(
+              "✕ Only PDF, PNG, and JPG files can be compressed.",
+              "error",
+            );
+            selectedFile = null;
+            return;
+          }
+          if (file.size > 50 * 1024 * 1024) {
+            showStatus("✕ File exceeds the 50 MB compression limit.", "error");
+            selectedFile = null;
+            return;
+          }
+          fileNameEl.textContent = file.name;
+          fileMetaEl.textContent =
+            formatSize(file.size) + " · " + ext.slice(1).toUpperCase();
+          typeBadge.textContent = "compress";
+          typeBadge.className = "file-badge compress";
+          filePreview.classList.add("visible");
+          optionsCard.classList.add("visible");
+          convertBtn.disabled = true;
+          clearStatus();
+          resetProgress();
+          updateFormats(null);
+          return;
+        }
+
+        // ── Conversion mode ────────────────────────────────────────────────────
+        detectedType = detectType(file);
+        if (!detectedType) {
+          showStatus("Unsupported file type.", "error");
+          return;
+        }
+
+        if (detectedType === "document" && !formatsReady) {
+          convertBtn.disabled = true;
+          convertBtn.textContent = "Loading formats…";
+          await formatsPromise;
+        }
+
+        if (detectedType === "document" && formatsFailed) {
+          showStatus(
+            "✕ Could not load document formats from server. Is it running?",
+            "error",
+          );
+          return;
+        }
+
+        fileNameEl.textContent = file.name;
+        fileMetaEl.textContent =
+          formatSize(file.size) + " · " + detectedType.toUpperCase();
+        typeBadge.textContent = detectedType;
+        typeBadge.className = `file-badge ${detectedType}`;
+        filePreview.classList.add("visible");
+        optionsCard.classList.add("visible");
+        convertBtn.disabled = true;
+        convertBtn.textContent = "Select a format above";
+        clearStatus();
+        resetProgress();
+        updateFormats(detectedType);
+      }
+
+      function clearFile() {
+        selectedFile = null;
+        selectedFmt = null;
+        detectedType = null;
+        fileInput.value = "";
+        formatGrid.innerHTML = "";
+        videoGifOpts.style.display = "none";
+        docOpts.style.display = "none";
+        compressOpts.classList.remove("visible");
+        formatRow.style.display = "";
+        advToggle.style.display = "";
+        advFields.classList.remove("open");
+        convertBtn.classList.remove("compress-active");
+        filePreview.classList.remove("visible");
+        optionsCard.classList.remove("visible");
+        optionsHeader.textContent = "Output options";
+        convertBtn.disabled = true;
+        convertBtn.textContent = compressMode
+          ? "Compress File"
+          : "Convert File";
+        clearStatus();
+        resetProgress();
+      }
+
+      function clearStatus() {
+        statusEl.className = "status";
+        statusEl.textContent = "";
+      }
+      function showStatus(msg, type) {
+        statusEl.textContent = msg;
+        statusEl.className = `status visible ${type}`;
+      }
+      function resetProgress() {
+        progressWrap.classList.remove("visible");
+        progressFill.style.width = "0%";
+        progressFill.classList.remove("indeterminate");
+      }
+      function setProgress(pct, label) {
+        progressWrap.classList.add("visible");
+        progressLabel.textContent = label;
+        if (pct === null) {
+          progressFill.classList.add("indeterminate");
+          progressPct.textContent = "...";
+        } else {
+          progressFill.classList.remove("indeterminate");
+          progressFill.style.width = pct + "%";
+          progressPct.textContent = pct + "%";
+        }
+      }
+
+      // ── Drop-zone events ───────────────────────────────────────────────────────
+      dropZone.addEventListener("click", () => fileInput.click());
+      fileInput.addEventListener("change", () => {
+        if (fileInput.files[0]) setFile(fileInput.files[0]);
+      });
+      dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.classList.add("drag-over");
+      });
+      dropZone.addEventListener("dragleave", () =>
+        dropZone.classList.remove("drag-over"),
+      );
+      dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropZone.classList.remove("drag-over");
+        if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+      });
+
+      removeBtn.addEventListener("click", clearFile);
+
+      advToggle.addEventListener("click", () => {
+        advFields.classList.toggle("open");
+        advToggle.textContent = advFields.classList.contains("open")
+          ? "− Advanced options"
+          : "+ Advanced options";
+      });
+
+      // ── Main button ────────────────────────────────────────────────────────────
+      convertBtn.addEventListener("click", async () => {
+        if (!selectedFile) return;
+
+        convertBtn.disabled = true;
+        clearStatus();
+
+        const isCompress = compressMode;
+        const isDoc = detectedType === "document";
+        const isArchive = detectedType === "archive";
+
+        let endpoint;
+        const fd = new FormData();
+        fd.append("file", selectedFile);
+
+        if (isCompress) {
+          const ext = selectedFile.name.toLowerCase().split(".").pop();
+          const normExt = ext === "jpeg" ? "jpg" : ext;
+          endpoint = `/compress/${normExt}`;
+          if (normExt === "pdf") {
+            fd.append("preset", $("compress-preset").value);
+          } else {
+            fd.append("quality", $("compress-quality").value);
+          }
+        } else {
+          if (!selectedFmt) return;
+          if (isDoc) {
+            endpoint = "/convert-doc";
+          } else if (isArchive) {
+            endpoint = "/convert-archive";
+          } else {
+            endpoint = "/convert";
+          }
+          fd.append("outputFormat", selectedFmt);
+
+          if (["video", "audio", "image"].includes(detectedType)) {
+            fd.append("audioBitrate", $("audio-bitrate").value);
+            fd.append("crf", $("video-crf").value);
+            fd.append("gifFps", $("gif-fps").value);
+            fd.append("gifScale", $("gif-scale").value);
+            fd.append("imageQuality", $("image-quality").value);
+            const w = $("img-width").value,
+              h = $("img-height").value;
+            if (w) fd.append("width", w);
+            if (h) fd.append("height", h);
+          }
+        }
+
+        try {
+          // ── Step 1: Upload and get jobId ───────────────────────────────────────
+          const jobData = await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.upload.addEventListener("progress", (e) => {
+              if (e.lengthComputable)
+                setProgress(
+                  Math.round((e.loaded / e.total) * 100),
+                  "Uploading...",
+                );
+            });
+            xhr.addEventListener("load", () => {
+              if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
+              else reject(new Error("Upload failed"));
+            });
+            xhr.addEventListener("error", () =>
+              reject(new Error("Network error")),
+            );
+            xhr.open("POST", endpoint);
+            xhr.send(fd);
+          });
+
+          const jobId = jobData.jobId;
+          if (!jobId) throw new Error("No job ID received");
+
+          // ── Step 2: Poll for completion ────────────────────────────────────────
+          let statusData;
+          while (true) {
+            const res = await fetch(`/status/${jobId}`);
+            statusData = await res.json();
+
+            if (statusData.status === "completed") break;
+            if (statusData.status === "failed")
+              throw new Error(statusData.error || "Processing failed");
+
+            setProgress(
+              null,
+              statusData.status === "active"
+                ? "Processing..."
+                : "Waiting in queue...",
+            );
+            await new Promise((r) => setTimeout(r, 1500));
+          }
+
+          // ── Step 3: Trigger download ───────────────────────────────────────────
+          const a = document.createElement("a");
+          a.href = `/download/${jobId}`;
+          let downloadName = selectedFile.name;
+          if (isCompress) {
+            const ext = downloadName.split(".").pop();
+            downloadName = downloadName.replace(
+              /\.[^.]+$/,
+              `_convertify.${ext}`,
+            );
+          } else {
+            if (downloadName.toLowerCase().endsWith(".tar.gz"))
+              downloadName = downloadName.slice(0, -7);
+            else if (downloadName.toLowerCase().endsWith(".tar.bz2"))
+              downloadName = downloadName.slice(0, -8);
+            else downloadName = downloadName.replace(/\.[^.]+$/, "");
+            downloadName += `_convertify.${selectedFmt}`;
+          }
+          a.download = downloadName;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+
+          resetProgress();
+          showStatus(`✓ Done — downloaded as ${downloadName}`, "success");
+          convertBtn.disabled = false;
+        } catch (err) {
+          console.error(err);
+          showStatus(`✕ ${err.message}`, "error");
+          resetProgress();
+          convertBtn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
