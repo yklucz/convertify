@@ -1,3 +1,4 @@
+require("dotenv").config();
 // Redis configuration
 const config = {
   host: process.env.REDIS_HOST,
